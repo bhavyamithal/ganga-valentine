@@ -2,25 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ganga, Will You Be My Valentine? 💕</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💕</text></svg>">
 
     <!-- Premium Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Quicksand:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- GSAP -->
+    <!-- GSAP for Premium Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/CustomEase.min.js"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Howler.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
 
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-heart">
+            <svg viewBox="0 0 100 100">
+                <path class="heart-path" d="M50 88.9C47.5 88.9 45.2 87.9 43.4 86.1L14.3 57C5.2 47.9 5.2 33.1 14.3 24C23.4 14.9 38.2 14.9 47.3 24L50 26.7L52.7 24C61.8 14.9 76.6 14.9 85.7 24C94.8 33.1 94.8 47.9 85.7 57L56.6 86.1C54.8 87.9 52.5 88.9 50 88.9Z"/>
+            </svg>
+        </div>
+        <p class="loading-text">Preparing something special...</p>
+    </div>
+
+    <!-- Sound Toggle -->
+    <button class="sound-toggle" id="sound-toggle" aria-label="Toggle Sound">
+        <svg class="sound-on" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+        <svg class="sound-off" viewBox="0 0 24 24" style="display: none;">
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+        </svg>
+    </button>
+
+    <!-- Envelope Intro -->
+    <div class="envelope-container" id="envelope-container">
+        <div class="envelope" id="envelope">
+            <div class="envelope-back"></div>
+            <div class="envelope-front">
+                <div class="envelope-flap"></div>
+                <div class="envelope-seal">
+                    <span>💌</span>
+                </div>
+            </div>
+            <div class="letter" id="letter">
+                <div class="letter-content">
+                    <p class="letter-greeting">My Dearest Ganga,</p>
+                    <p class="letter-text">There's something I've been meaning to ask you...</p>
+                    <p class="letter-hint">Tap the envelope to open 💕</p>
+                </div>
+            </div>
+        </div>
+        <div class="envelope-hearts" id="envelope-hearts"></div>
+    </div>
+
     <!-- Custom Cursor Hearts Trail -->
     <div class="cursor-hearts" id="cursor-hearts"></div>
+
+    <!-- Shimmer Overlay -->
+    <div class="shimmer-overlay"></div>
 
     <!-- Particle Background Canvas -->
     <canvas id="particle-canvas"></canvas>
@@ -28,12 +79,27 @@
     <!-- Floating Petals Container -->
     <div id="petals-container"></div>
 
+    <!-- Floating Hearts Container -->
+    <div id="floating-hearts"></div>
+
     <!-- Main Container -->
-    <main class="main-container">
+    <main class="main-container" id="main-container" style="display: none;">
+        <!-- Love Meter -->
+        <div class="love-meter" id="love-meter">
+            <div class="love-meter-fill" id="love-meter-fill"></div>
+            <div class="love-meter-text">Love Level: <span id="love-level">0</span>%</div>
+        </div>
+
         <!-- Premium Valentine Card -->
         <div class="valentine-card" id="valentine-card">
+            <!-- Glow Effect -->
+            <div class="card-glow"></div>
+
             <!-- Glass Effect Layer -->
             <div class="glass-layer"></div>
+
+            <!-- Sparkles -->
+            <div class="sparkles" id="sparkles"></div>
 
             <!-- Content -->
             <div class="card-content">
@@ -56,8 +122,11 @@
                         <span class="cursor-blink">|</span>
                     </h1>
 
-                    <!-- Subtext -->
-                    <p class="subtext" id="subtext">I've been waiting for the perfect moment...</p>
+                    <!-- Reasons I Love You Carousel -->
+                    <div class="love-reasons" id="love-reasons">
+                        <p class="love-reason-label">✨ Why I love you ✨</p>
+                        <div class="love-reason-text" id="love-reason-text"></div>
+                    </div>
 
                     <!-- Interactive Shitzu Dog Character -->
                     <div class="shitzu-container" id="shitzu-container">
@@ -109,6 +178,19 @@
                                 <circle cx="117" cy="79" r="3" fill="white" />
                             </g>
 
+                            <!-- Pleading eyes (for when NO is clicked) -->
+                            <g class="pleading-eyes" style="display: none;">
+                                <ellipse cx="85" cy="80" rx="10" ry="12" fill="#2C2C2C" />
+                                <ellipse cx="115" cy="80" rx="10" ry="12" fill="#2C2C2C" />
+                                <circle cx="88" cy="76" r="4" fill="white" />
+                                <circle cx="118" cy="76" r="4" fill="white" />
+                                <circle cx="85" cy="72" r="2" fill="white" opacity="0.5" />
+                                <circle cx="115" cy="72" r="2" fill="white" opacity="0.5" />
+                                <!-- Tear drops -->
+                                <ellipse class="tear" cx="75" cy="90" rx="3" ry="5" fill="#87CEEB" opacity="0.8"/>
+                                <ellipse class="tear" cx="125" cy="90" rx="3" ry="5" fill="#87CEEB" opacity="0.8"/>
+                            </g>
+
                             <!-- Nose -->
                             <path d="M92 95 Q100 92 108 95 Q100 105 92 95" fill="#2C2C2C" />
 
@@ -124,6 +206,11 @@
                                 <ellipse cx="100" cy="112" rx="8" ry="6" fill="#FF9999" />
                             </g>
 
+                            <!-- Sad mouth (hidden) -->
+                            <g class="sad-mouth" style="display: none;">
+                                <path d="M90 110 Q100 100 110 110" stroke="#2C2C2C" stroke-width="2" fill="none" stroke-linecap="round" />
+                            </g>
+
                             <!-- Cheeks -->
                             <ellipse cx="72" cy="92" rx="8" ry="5" fill="#FFB6C1" opacity="0.6" />
                             <ellipse cx="128" cy="92" rx="8" ry="5" fill="#FFB6C1" opacity="0.6" />
@@ -134,6 +221,11 @@
 
                             <!-- Tail -->
                             <path class="tail" d="M135 130 Q165 110 155 85" stroke="#F5E6D3" stroke-width="14" fill="none" stroke-linecap="round" />
+
+                            <!-- Heart the dog is holding -->
+                            <g class="dog-heart" transform="translate(55, 145) scale(0.4)">
+                                <path d="M50 88.9C47.5 88.9 45.2 87.9 43.4 86.1L14.3 57C5.2 47.9 5.2 33.1 14.3 24C23.4 14.9 38.2 14.9 47.3 24L50 26.7L52.7 24C61.8 14.9 76.6 14.9 85.7 24C94.8 33.1 94.8 47.9 85.7 57L56.6 86.1C54.8 87.9 52.5 88.9 50 88.9Z" fill="#FF69B4"/>
+                            </g>
                         </svg>
 
                         <!-- Thought bubble -->
@@ -143,7 +235,7 @@
                     </div>
 
                     <!-- Buttons Area -->
-                    <div class="buttons-area">
+                    <div class="buttons-area" id="buttons-area">
                         <button class="btn btn-yes" id="btn-yes">
                             <span class="btn-hearts">
                                 <span class="mini-heart">💕</span>
@@ -151,6 +243,7 @@
                                 <span class="mini-heart">💗</span>
                             </span>
                             <span class="btn-text">Yes, absolutely!</span>
+                            <span class="btn-shine"></span>
                         </button>
 
                         <div class="btn-no-wrapper" id="btn-no-wrapper">
@@ -161,15 +254,25 @@
                     </div>
 
                     <p class="escalation-message" id="escalation-message">
-                        The YES button is getting bigger... and the NO button is disappearing 👀
+                        The YES button is getting bigger... and the NO button is running away 👀
+                    </p>
+
+                    <!-- NO button surrender message -->
+                    <p class="surrender-message" id="surrender-message" style="display: none;">
+                        Fine! The NO button gave up. There's only one choice now 💕
                     </p>
                 </div>
 
                 <!-- Success Section -->
                 <div class="content-section success-section" id="success-section">
+                    <div class="success-fireworks" id="success-fireworks"></div>
                     <div class="success-emoji">🎉</div>
-                    <h2 class="success-heading">She said YES!</h2>
-                    <p class="success-message">You've made me the happiest person alive!</p>
+                    <h2 class="success-heading">SHE SAID YES!</h2>
+                    <p class="success-message">You've made me the happiest person in the world!</p>
+
+                    <!-- Animated hearts burst -->
+                    <div class="hearts-burst" id="hearts-burst"></div>
+
                     <p class="pickup-message" id="pickup-message">
                         Be ready, I'll pick you up on that day 💕
                     </p>
@@ -177,20 +280,45 @@
 
                 <!-- Final Section -->
                 <div class="content-section final-section" id="final-section">
+                    <!-- Our Memories Section -->
+                    <div class="memories-section">
+                        <h3 class="memories-title">Our Memories Together</h3>
+                        <div class="polaroid-gallery" id="polaroid-gallery">
+                            <div class="polaroid" data-caption="Our first date 💕">
+                                <div class="polaroid-image polaroid-first">
+                                    <img src="first_date.jpeg" alt="Our first date" />
+                                </div>
+                            </div>
+                            <div class="polaroid" data-caption="My favorite moment 🥰">
+                                <div class="polaroid-image polaroid-second">
+                                    <img src="fav_moment.jpeg" alt="My favorite moment" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="final-illustration">
-                        <svg viewBox="0 0 100 100" class="couple-icon">
-                            <circle cx="35" cy="35" r="15" fill="#FFB6C1" />
-                            <circle cx="65" cy="35" r="15" fill="#FFC0CB" />
-                            <path d="M25 55 Q50 80 75 55" stroke="#FF69B4" stroke-width="3" fill="none" />
-                            <path d="M50 65 L50 90" stroke="#FF69B4" stroke-width="2" />
-                            <ellipse cx="35" cy="95" rx="12" ry="8" fill="#FF69B4" />
-                            <ellipse cx="65" cy="95" rx="12" ry="8" fill="#FF69B4" />
+                        <svg viewBox="0 0 120 100" class="couple-icon">
+                            <!-- Person 1 -->
+                            <circle cx="40" cy="30" r="12" fill="#FFB6C1" />
+                            <ellipse cx="40" cy="65" rx="15" ry="25" fill="#FF69B4" />
+
+                            <!-- Person 2 -->
+                            <circle cx="80" cy="30" r="12" fill="#87CEEB" />
+                            <ellipse cx="80" cy="65" rx="15" ry="25" fill="#4A90D9" />
+
+                            <!-- Holding hands heart -->
+                            <path d="M60 50 Q50 40 55 35 Q60 30 60 40 Q60 30 65 35 Q70 40 60 50Z" fill="#FF1493" class="mini-heart-icon"/>
+
+                            <!-- Arms connecting -->
+                            <path d="M52 55 Q60 50 68 55" stroke="#FFB6C1" stroke-width="4" fill="none" stroke-linecap="round"/>
                         </svg>
                     </div>
+
                     <h2 class="final-heading">It's a Date!</h2>
-                    <p class="final-message">Valentine's Day will be ours</p>
+                    <p class="final-message">Valentine's Day 2026 will be ours</p>
                     <p class="final-subtext">
-                        Dress up, be ready, and prepare to be swept off your feet
+                        Dress up beautifully, and prepare to be swept off your feet ✨
                     </p>
 
                     <!-- WhatsApp Share Button -->
@@ -198,29 +326,39 @@
                         <svg class="whatsapp-icon" viewBox="0 0 24 24">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                         </svg>
-                        <span>Tell him YES!</span>
+                        <span>Tell him I said YES!</span>
                     </button>
 
                     <!-- Countdown -->
                     <div class="countdown-container">
+                        <p class="countdown-title">Counting down to our special day</p>
                         <div class="countdown" id="countdown">
                             <div class="countdown-box">
                                 <span class="countdown-num" id="days">00</span>
                                 <span class="countdown-label">Days</span>
                             </div>
+                            <div class="countdown-separator">:</div>
                             <div class="countdown-box">
                                 <span class="countdown-num" id="hours">00</span>
                                 <span class="countdown-label">Hours</span>
                             </div>
+                            <div class="countdown-separator">:</div>
                             <div class="countdown-box">
                                 <span class="countdown-num" id="minutes">00</span>
                                 <span class="countdown-label">Minutes</span>
                             </div>
+                            <div class="countdown-separator">:</div>
                             <div class="countdown-box">
                                 <span class="countdown-num" id="seconds">00</span>
                                 <span class="countdown-label">Seconds</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Love Quote -->
+                    <div class="love-quote" id="love-quote">
+                        <p class="quote-text">"In all the world, there is no heart for me like yours."</p>
+                        <p class="quote-author">— Maya Angelou</p>
                     </div>
                 </div>
             </div>
@@ -232,7 +370,23 @@
             <p>I've been practicing my puppy eyes for this moment...</p>
             <span class="easter-paw">🐾</span>
         </div>
+
+        <!-- Konami Code Easter Egg -->
+        <div class="konami-reward" id="konami-reward" style="display: none;">
+            <div class="konami-content">
+                <h3>🎮 Secret Unlocked! 🎮</h3>
+                <p>You found the secret code!</p>
+                <p class="konami-message">Here's an extra special message:</p>
+                <p class="konami-love">"You are my favorite notification, my best good morning, and my sweetest goodnight."</p>
+                <button class="btn btn-close-konami" id="btn-close-konami">Close 💕</button>
+            </div>
+        </div>
     </main>
+
+    <!-- Floating Action Button for extra surprise -->
+    <button class="fab-surprise" id="fab-surprise" style="display: none;" aria-label="Surprise">
+        <span>🎁</span>
+    </button>
 
     <script src="script.js"></script>
 </body>

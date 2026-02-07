@@ -1,73 +1,87 @@
 /**
  * ========================================
- * GANGA'S VALENTINE
- * Cute, Interactive & Full of Delight
+ * GANGA'S VALENTINE - PREMIUM EDITION
+ * Professional-Grade Interactive Experience
  * ========================================
  */
 
-// Personalization
+// Personalization - Customize these!
 const PERSONALIZATION = {
     name: "Ganga",
     heading: "Ganga, Will You Be My Valentine?",
-    subtext: "I've been waiting for the perfect moment...",
+
+    // Reasons why you love her - these will cycle through
+    loveReasons: [
+        "Your smile lights up my entire world",
+        "You make every moment feel magical",
+        "Your laugh is my favorite sound",
+        "You understand me like no one else",
+        "Every day with you is an adventure",
+        "You make me want to be a better person",
+        "Your kindness inspires me every day",
+        "I love how we can talk for hours",
+        "You're my best friend and soulmate"
+    ],
+
+    // Messages when NO is clicked
     noMessages: [
         "Are you sure? 🥺",
-        "Think again! 💭",
-        "Really? 😢",
-        "But why? 😿",
-        "Puppy is sad 🐾",
-        "Try the other one! 💕",
+        "Think again, please! 💭",
+        "Really? My heart hurts 😢",
+        "But... but why? 😿",
+        "Look at the puppy! 🐾",
+        "The puppy is getting sad...",
         "Pretty please? 🥺",
-        "Don't break my heart 💔"
+        "Don't break our hearts 💔",
+        "I'll keep asking forever! 💕",
+        "The button is scared now!",
+        "Okay okay I give up... JK! 😜"
     ],
-    valentineDate: new Date(new Date().getFullYear(), 1, 14),
-    whatsappNumber: "919759133629", // Add your number here with country code (e.g., "919876543210")
+
+    // Love quotes for the final section
+    loveQuotes: [
+        { text: "In all the world, there is no heart for me like yours.", author: "Maya Angelou" },
+        { text: "I have found the one whom my soul loves.", author: "Song of Solomon" },
+        { text: "You are my today and all of my tomorrows.", author: "Leo Christopher" },
+        { text: "I love you not only for what you are, but for what I am when I am with you.", author: "Roy Croft" },
+        { text: "Whatever our souls are made of, his and mine are the same.", author: "Emily Brontë" }
+    ],
+
+    valentineDate: new Date(new Date().getFullYear(), 1, 14), // February 14th
+    whatsappNumber: "919759133629", // Your number with country code
     whatsappMessage: "I said YES! 💕 Can't wait for Valentine's Day!"
 };
 
+// Adjust date if it's already passed
 if (PERSONALIZATION.valentineDate < new Date()) {
     PERSONALIZATION.valentineDate = new Date(new Date().getFullYear() + 1, 1, 14);
 }
 
-// State
+// State Management
 const state = {
     noAttempts: 0,
     hasClickedYes: false,
     lastInteraction: Date.now(),
-    easterEggShown: false
+    easterEggShown: false,
+    loveLevel: 0,
+    soundEnabled: false,
+    envelopeOpened: false,
+    currentReasonIndex: 0,
+    konamiProgress: 0
 };
+
+// Konami Code sequence
+const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
 // DOM Elements
-const elements = {
-    headingText: document.getElementById('heading-text'),
-    cursorBlink: document.querySelector('.cursor-blink'),
-    subtext: document.getElementById('subtext'),
-    shitzuDog: document.getElementById('shitzu-dog'),
-    thoughtBubble: document.getElementById('thought-bubble'),
-    yesBtn: document.getElementById('btn-yes'),
-    noBtn: document.getElementById('btn-no'),
-    noBtnWrapper: document.getElementById('btn-no-wrapper'),
-    questionSection: document.getElementById('question-section'),
-    successSection: document.getElementById('success-section'),
-    finalSection: document.getElementById('final-section'),
-    escalationMsg: document.getElementById('escalation-message'),
-    easterEgg: document.getElementById('easter-egg'),
-    cursorHearts: document.getElementById('cursor-hearts'),
-    petalsContainer: document.getElementById('petals-container'),
-    particleCanvas: document.getElementById('particle-canvas'),
-    whatsappBtn: document.getElementById('btn-whatsapp'),
-    notifyBtn: document.getElementById('btn-notify'),
-    countdown: {
-        days: document.getElementById('days'),
-        hours: document.getElementById('hours'),
-        minutes: document.getElementById('minutes'),
-        seconds: document.getElementById('seconds')
-    }
-};
+const elements = {};
 
-// Detect mobile
+// Detect device
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+// Sound Effects (using Howler.js)
+let sounds = {};
 
 /**
  * ========================================
@@ -76,26 +90,236 @@ const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Cache DOM elements
+    cacheElements();
+
+    // Initialize loading screen
+    initLoadingScreen();
+});
+
+function cacheElements() {
+    elements.loadingScreen = document.getElementById('loading-screen');
+    elements.envelopeContainer = document.getElementById('envelope-container');
+    elements.envelope = document.getElementById('envelope');
+    elements.mainContainer = document.getElementById('main-container');
+    elements.headingText = document.getElementById('heading-text');
+    elements.cursorBlink = document.querySelector('.cursor-blink');
+    elements.loveReasons = document.getElementById('love-reasons');
+    elements.loveReasonText = document.getElementById('love-reason-text');
+    elements.shitzuDog = document.getElementById('shitzu-dog');
+    elements.shitzuContainer = document.getElementById('shitzu-container');
+    elements.thoughtBubble = document.getElementById('thought-bubble');
+    elements.yesBtn = document.getElementById('btn-yes');
+    elements.noBtn = document.getElementById('btn-no');
+    elements.noBtnWrapper = document.getElementById('btn-no-wrapper');
+    elements.buttonsArea = document.getElementById('buttons-area');
+    elements.questionSection = document.getElementById('question-section');
+    elements.successSection = document.getElementById('success-section');
+    elements.finalSection = document.getElementById('final-section');
+    elements.escalationMsg = document.getElementById('escalation-message');
+    elements.surrenderMsg = document.getElementById('surrender-message');
+    elements.easterEgg = document.getElementById('easter-egg');
+    elements.cursorHearts = document.getElementById('cursor-hearts');
+    elements.petalsContainer = document.getElementById('petals-container');
+    elements.floatingHearts = document.getElementById('floating-hearts');
+    elements.particleCanvas = document.getElementById('particle-canvas');
+    elements.whatsappBtn = document.getElementById('btn-whatsapp');
+    elements.soundToggle = document.getElementById('sound-toggle');
+    elements.loveMeterFill = document.getElementById('love-meter-fill');
+    elements.loveLevel = document.getElementById('love-level');
+    elements.sparkles = document.getElementById('sparkles');
+    elements.konamiReward = document.getElementById('konami-reward');
+    elements.closeKonami = document.getElementById('btn-close-konami');
+    elements.loveQuote = document.getElementById('love-quote');
+    elements.fabSurprise = document.getElementById('fab-surprise');
+    elements.countdown = {
+        days: document.getElementById('days'),
+        hours: document.getElementById('hours'),
+        minutes: document.getElementById('minutes'),
+        seconds: document.getElementById('seconds')
+    };
+}
+
+function initLoadingScreen() {
+    // Simulate loading
+    setTimeout(() => {
+        elements.loadingScreen.classList.add('hidden');
+        initEnvelope();
+        initSounds();
+    }, 2000);
+}
+
+/**
+ * ========================================
+ * ENVELOPE INTRO
+ * ========================================
+ */
+
+function initEnvelope() {
+    // Spawn floating hearts around envelope
+    spawnEnvelopeHearts();
+
+    // Click to open envelope
+    elements.envelope.addEventListener('click', openEnvelope);
+    elements.envelope.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        openEnvelope();
+    });
+}
+
+function spawnEnvelopeHearts() {
+    const container = document.getElementById('envelope-hearts');
+    const hearts = ['💕', '💖', '💗', '💓', '💝'];
+
+    setInterval(() => {
+        if (state.envelopeOpened) return;
+
+        const heart = document.createElement('span');
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.cssText = `
+            position: absolute;
+            left: ${Math.random() * 100}%;
+            top: ${Math.random() * 100}%;
+            font-size: ${Math.random() * 15 + 10}px;
+            opacity: 0;
+            pointer-events: none;
+            animation: envelopeHeartPop 2s ease forwards;
+        `;
+        container.appendChild(heart);
+
+        setTimeout(() => heart.remove(), 2000);
+    }, 500);
+
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes envelopeHeartPop {
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 0.8; transform: scale(1) rotate(10deg); }
+            100% { opacity: 0; transform: scale(0.5) rotate(20deg) translateY(-30px); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function openEnvelope() {
+    if (state.envelopeOpened) return;
+    state.envelopeOpened = true;
+
+    playSound('whoosh');
+
+    elements.envelope.classList.add('opened');
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate([50, 30, 50]);
+    }
+
+    // Transition to main content after animation
+    setTimeout(() => {
+        elements.envelopeContainer.classList.add('hidden');
+        elements.mainContainer.style.display = 'flex';
+
+        // Initialize main experience
+        initMainExperience();
+    }, 2500);
+}
+
+/**
+ * ========================================
+ * MAIN EXPERIENCE INITIALIZATION
+ * ========================================
+ */
+
+function initMainExperience() {
     initTypewriter();
+    initLoveReasons();
     initCursorHearts();
     initTouchHearts();
     initParticles();
     initPetals();
+    initFloatingHearts();
+    initSparkles();
     initShitzu();
     initShitzuInteractions();
     initButtons();
     initWhatsApp();
-    initNotifications();
-    initShakeToReset();
     initCountdown();
     initEasterEgg();
     initCardParallax();
+    initKonamiCode();
+    initSoundToggle();
+    initLoveQuotes();
+
+    // Initial love meter
+    updateLoveMeter(10);
 
     // Mobile optimizations
     if (isMobile) {
         optimizeForMobile();
     }
-});
+}
+
+/**
+ * ========================================
+ * SOUND EFFECTS
+ * ========================================
+ */
+
+function initSounds() {
+    if (typeof Howl === 'undefined') return;
+
+    // Using embedded base64 sounds or CDN links would go here
+    // For now, we'll create placeholder sound objects
+    sounds = {
+        pop: createSilentSound(),
+        whoosh: createSilentSound(),
+        success: createSilentSound(),
+        heartbeat: createSilentSound(),
+        bark: createSilentSound()
+    };
+}
+
+function createSilentSound() {
+    // Placeholder for actual sound implementation
+    return {
+        play: () => {},
+        stop: () => {}
+    };
+}
+
+function playSound(name) {
+    if (!state.soundEnabled || !sounds[name]) return;
+    try {
+        sounds[name].play();
+    } catch (e) {
+        // Ignore sound errors
+    }
+}
+
+function initSoundToggle() {
+    if (!elements.soundToggle) return;
+
+    elements.soundToggle.addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+
+        const soundOn = elements.soundToggle.querySelector('.sound-on');
+        const soundOff = elements.soundToggle.querySelector('.sound-off');
+
+        if (state.soundEnabled) {
+            soundOn.style.display = 'block';
+            soundOff.style.display = 'none';
+            playSound('pop');
+        } else {
+            soundOn.style.display = 'none';
+            soundOff.style.display = 'block';
+        }
+
+        if (navigator.vibrate) {
+            navigator.vibrate(20);
+        }
+    });
+}
 
 /**
  * ========================================
@@ -111,16 +335,82 @@ function initTypewriter() {
         if (i < text.length) {
             elements.headingText.textContent += text.charAt(i);
             i++;
-            setTimeout(type, 80 + Math.random() * 50);
+
+            // Increase love meter slightly with each character
+            if (i % 5 === 0) {
+                updateLoveMeter(state.loveLevel + 1);
+            }
+
+            setTimeout(type, 70 + Math.random() * 40);
         } else {
             // Remove cursor after typing
             setTimeout(() => {
-                elements.cursorBlink.style.display = 'none';
+                if (elements.cursorBlink) {
+                    elements.cursorBlink.style.display = 'none';
+                }
             }, 1000);
         }
     }
 
-    setTimeout(type, 500);
+    setTimeout(type, 300);
+}
+
+/**
+ * ========================================
+ * LOVE REASONS CAROUSEL
+ * ========================================
+ */
+
+function initLoveReasons() {
+    if (!elements.loveReasonText) return;
+
+    function showNextReason() {
+        const reason = PERSONALIZATION.loveReasons[state.currentReasonIndex];
+
+        // Fade out
+        if (typeof gsap !== 'undefined') {
+            gsap.to(elements.loveReasonText, {
+                opacity: 0,
+                y: -10,
+                duration: 0.3,
+                onComplete: () => {
+                    elements.loveReasonText.textContent = reason;
+                    gsap.to(elements.loveReasonText, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.3
+                    });
+                }
+            });
+        } else {
+            elements.loveReasonText.textContent = reason;
+        }
+
+        state.currentReasonIndex = (state.currentReasonIndex + 1) % PERSONALIZATION.loveReasons.length;
+    }
+
+    // Show first reason after delay
+    setTimeout(() => {
+        showNextReason();
+        setInterval(showNextReason, 4000);
+    }, 2000);
+}
+
+/**
+ * ========================================
+ * LOVE METER
+ * ========================================
+ */
+
+function updateLoveMeter(level) {
+    state.loveLevel = Math.min(100, Math.max(0, level));
+
+    if (elements.loveMeterFill) {
+        elements.loveMeterFill.style.width = state.loveLevel + '%';
+    }
+    if (elements.loveLevel) {
+        elements.loveLevel.textContent = state.loveLevel;
+    }
 }
 
 /**
@@ -130,12 +420,14 @@ function initTypewriter() {
  */
 
 function initCursorHearts() {
+    if (isTouchDevice) return;
+
     let lastHeart = 0;
-    const hearts = ['💕', '💖', '💗', '💓', '💝'];
+    const hearts = ['💕', '💖', '💗', '💓', '💝', '✨'];
 
     document.addEventListener('mousemove', (e) => {
         const now = Date.now();
-        if (now - lastHeart < 100) return; // Throttle
+        if (now - lastHeart < 80) return;
 
         lastHeart = now;
 
@@ -144,12 +436,74 @@ function initCursorHearts() {
         heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
         heart.style.left = e.clientX + 'px';
         heart.style.top = e.clientY + 'px';
-        heart.style.fontSize = (Math.random() * 10 + 10) + 'px';
+        heart.style.fontSize = (Math.random() * 8 + 10) + 'px';
 
         elements.cursorHearts.appendChild(heart);
 
         setTimeout(() => heart.remove(), 1200);
     });
+}
+
+/**
+ * ========================================
+ * TOUCH HEARTS
+ * ========================================
+ */
+
+function initTouchHearts() {
+    if (!isTouchDevice) return;
+
+    const hearts = ['💕', '💖', '💗', '💓', '💝', '🌸', '✨'];
+    let lastTap = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.btn') || e.target.closest('.envelope')) return;
+
+        const touch = e.touches[0];
+        spawnTouchHeart(touch.clientX, touch.clientY);
+
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+
+        // Increase love meter
+        updateLoveMeter(state.loveLevel + 1);
+    });
+
+    // Double tap burst
+    document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTap < 300) {
+            const touch = e.changedTouches[0];
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    spawnTouchHeart(
+                        touch.clientX + (Math.random() - 0.5) * 120,
+                        touch.clientY + (Math.random() - 0.5) * 120
+                    );
+                }, i * 40);
+            }
+
+            if (navigator.vibrate) {
+                navigator.vibrate([20, 30, 20]);
+            }
+
+            updateLoveMeter(state.loveLevel + 5);
+        }
+        lastTap = now;
+    });
+
+    function spawnTouchHeart(x, y) {
+        const heart = document.createElement('span');
+        heart.className = 'touch-heart';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = x + 'px';
+        heart.style.top = y + 'px';
+        heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
+
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 800);
+    }
 }
 
 /**
@@ -160,6 +514,8 @@ function initCursorHearts() {
 
 function initParticles() {
     const canvas = elements.particleCanvas;
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
 
     function resize() {
@@ -171,20 +527,19 @@ function initParticles() {
 
     // Create particles
     const particles = [];
-    const particleCount = 50;
+    const particleCount = isMobile ? 30 : 50;
 
     for (let i = 0; i < particleCount; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
             size: Math.random() * 3 + 1,
-            speedX: (Math.random() - 0.5) * 0.5,
-            speedY: (Math.random() - 0.5) * 0.5,
-            opacity: Math.random() * 0.5 + 0.2
+            speedX: (Math.random() - 0.5) * 0.4,
+            speedY: (Math.random() - 0.5) * 0.4,
+            opacity: Math.random() * 0.4 + 0.2
         });
     }
 
-    // Animation loop
     let animationId;
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -198,7 +553,6 @@ function initParticles() {
             p.x += p.speedX;
             p.y += p.speedY;
 
-            // Wrap around
             if (p.x < 0) p.x = canvas.width;
             if (p.x > canvas.width) p.x = 0;
             if (p.y < 0) p.y = canvas.height;
@@ -206,21 +560,23 @@ function initParticles() {
         });
 
         // Draw connections
-        particles.forEach((p1, i) => {
-            particles.slice(i + 1).forEach(p2 => {
-                const dx = p1.x - p2.x;
-                const dy = p1.y - p2.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
+        if (!isMobile) {
+            particles.forEach((p1, i) => {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < 100) {
-                    ctx.beginPath();
-                    ctx.moveTo(p1.x, p1.y);
-                    ctx.lineTo(p2.x, p2.y);
-                    ctx.strokeStyle = `rgba(255, 105, 180, ${0.1 * (1 - dist / 100)})`;
-                    ctx.stroke();
-                }
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = `rgba(255, 105, 180, ${0.08 * (1 - dist / 120)})`;
+                        ctx.stroke();
+                    }
+                });
             });
-        });
+        }
 
         animationId = requestAnimationFrame(animate);
     }
@@ -250,11 +606,12 @@ function initPetals() {
         petal.style.left = Math.random() * window.innerWidth + 'px';
         petal.style.top = '-20px';
         petal.style.transform = `rotate(${Math.random() * 360}deg)`;
-        petal.style.opacity = Math.random() * 0.5 + 0.3;
+        petal.style.opacity = Math.random() * 0.4 + 0.3;
+        petal.style.width = (Math.random() * 8 + 10) + 'px';
+        petal.style.height = petal.style.width;
 
         elements.petalsContainer.appendChild(petal);
 
-        // Animate with GSAP if available, otherwise CSS
         const duration = Math.random() * 5 + 8;
         const xMovement = (Math.random() - 0.5) * 200;
 
@@ -268,7 +625,6 @@ function initPetals() {
                 onComplete: () => petal.remove()
             });
         } else {
-            // Fallback CSS animation
             petal.style.transition = `transform ${duration}s linear`;
             setTimeout(() => {
                 petal.style.transform = `translate(${xMovement}px, ${window.innerHeight + 50}px) rotate(${Math.random() * 720}deg)`;
@@ -277,7 +633,68 @@ function initPetals() {
         }
     }
 
-    setInterval(createPetal, 600);
+    setInterval(createPetal, isMobile ? 800 : 500);
+}
+
+/**
+ * ========================================
+ * FLOATING HEARTS BACKGROUND
+ * ========================================
+ */
+
+function initFloatingHearts() {
+    if (!elements.floatingHearts) return;
+
+    const hearts = ['💕', '💖', '💗', '💓'];
+
+    function createFloatingHeart() {
+        const heart = document.createElement('span');
+        heart.className = 'floating-heart';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDuration = (Math.random() * 5 + 8) + 's';
+        heart.style.animationDelay = Math.random() * 5 + 's';
+        heart.style.fontSize = (Math.random() * 10 + 12) + 'px';
+
+        elements.floatingHearts.appendChild(heart);
+
+        setTimeout(() => heart.remove(), 15000);
+    }
+
+    // Initial hearts
+    for (let i = 0; i < 5; i++) {
+        setTimeout(createFloatingHeart, i * 1000);
+    }
+
+    setInterval(createFloatingHeart, 3000);
+}
+
+/**
+ * ========================================
+ * SPARKLES EFFECT
+ * ========================================
+ */
+
+function initSparkles() {
+    if (!elements.sparkles) return;
+
+    function createSparkle() {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.style.left = Math.random() * 100 + '%';
+        sparkle.style.top = Math.random() * 100 + '%';
+        sparkle.style.animationDelay = Math.random() * 2 + 's';
+
+        elements.sparkles.appendChild(sparkle);
+
+        setTimeout(() => sparkle.remove(), 4000);
+    }
+
+    for (let i = 0; i < 8; i++) {
+        setTimeout(createSparkle, i * 300);
+    }
+
+    setInterval(createSparkle, 500);
 }
 
 /**
@@ -288,9 +705,10 @@ function initPetals() {
 
 function initShitzu() {
     const dog = elements.shitzuDog;
+    if (!dog) return;
 
-    // Idle animations
-    setInterval(() => blinkEyes(), 4000);
+    // Idle blink
+    setInterval(() => blinkEyes(), 3500);
 
     function blinkEyes() {
         const eyes = dog.querySelectorAll('.eye');
@@ -304,61 +722,158 @@ function initShitzu() {
 
     // Show thought bubble occasionally
     setInterval(() => {
-        if (!state.hasClickedYes && Math.random() > 0.7) {
-            elements.thoughtBubble.classList.add('visible');
-            setTimeout(() => {
-                elements.thoughtBubble.classList.remove('visible');
-            }, 3000);
+        if (!state.hasClickedYes && Math.random() > 0.6) {
+            showThought("Pick YES! 🐾");
         }
-    }, 8000);
+    }, 6000);
+}
+
+function showThought(text) {
+    if (!elements.thoughtBubble) return;
+
+    elements.thoughtBubble.querySelector('p').textContent = text;
+    elements.thoughtBubble.classList.add('visible');
+    setTimeout(() => {
+        elements.thoughtBubble.classList.remove('visible');
+    }, 3000);
 }
 
 function setDogMood(mood) {
     const dog = elements.shitzuDog;
+    if (!dog) return;
+
     const eyes = dog.querySelector('.eyes');
     const happyEyes = dog.querySelector('.happy-eyes');
     const shockedEyes = dog.querySelector('.shocked-eyes');
+    const pleadingEyes = dog.querySelector('.pleading-eyes');
     const mouth = dog.querySelector('.mouth-group');
     const happyMouth = dog.querySelector('.happy-mouth');
+    const sadMouth = dog.querySelector('.sad-mouth');
 
-    // Reset
-    dog.classList.remove('happy', 'shocked', 'celebrating');
-    eyes.style.display = 'none';
-    happyEyes.style.display = 'none';
-    shockedEyes.style.display = 'none';
-    mouth.style.display = 'none';
-    happyMouth.style.display = 'none';
+    // Reset all
+    dog.classList.remove('happy', 'shocked', 'celebrating', 'sad');
+    [eyes, happyEyes, shockedEyes, pleadingEyes].forEach(el => {
+        if (el) el.style.display = 'none';
+    });
+    [mouth, happyMouth, sadMouth].forEach(el => {
+        if (el) el.style.display = 'none';
+    });
 
     switch(mood) {
         case 'happy':
             dog.classList.add('happy');
-            happyEyes.style.display = 'block';
-            happyMouth.style.display = 'block';
-            elements.thoughtBubble.querySelector('p').textContent = "Yay! 💕";
-            elements.thoughtBubble.classList.add('visible');
-            setTimeout(() => elements.thoughtBubble.classList.remove('visible'), 2000);
+            if (happyEyes) happyEyes.style.display = 'block';
+            if (happyMouth) happyMouth.style.display = 'block';
+            showThought("Yay! 💕");
             break;
 
         case 'shocked':
             dog.classList.add('shocked');
-            shockedEyes.style.display = 'block';
-            mouth.style.display = 'block';
-            elements.thoughtBubble.querySelector('p').textContent = "Oh no! 😿";
-            elements.thoughtBubble.classList.add('visible');
-            setTimeout(() => elements.thoughtBubble.classList.remove('visible'), 2000);
+            if (shockedEyes) shockedEyes.style.display = 'block';
+            if (mouth) mouth.style.display = 'block';
+            showThought("Oh no! 😿");
+            break;
+
+        case 'sad':
+            dog.classList.add('sad');
+            if (pleadingEyes) pleadingEyes.style.display = 'block';
+            if (sadMouth) sadMouth.style.display = 'block';
+            showThought("Please? 🥺");
             break;
 
         case 'celebrating':
             dog.classList.add('celebrating');
-            happyEyes.style.display = 'block';
-            happyMouth.style.display = 'block';
-            elements.thoughtBubble.querySelector('p').textContent = "Best day ever! 🎉";
-            elements.thoughtBubble.classList.add('visible');
+            if (happyEyes) happyEyes.style.display = 'block';
+            if (happyMouth) happyMouth.style.display = 'block';
+            showThought("BEST DAY EVER! 🎉");
             break;
 
-        default: // normal
-            eyes.style.display = 'block';
-            mouth.style.display = 'block';
+        default:
+            if (eyes) eyes.style.display = 'block';
+            if (mouth) mouth.style.display = 'block';
+    }
+}
+
+/**
+ * ========================================
+ * SHITZU INTERACTIONS
+ * ========================================
+ */
+
+function initShitzuInteractions() {
+    const dog = elements.shitzuDog;
+    if (!dog) return;
+
+    let longPressTimer;
+    let isLongPress = false;
+
+    // Eye tracking on desktop
+    if (!isTouchDevice) {
+        document.addEventListener('mousemove', (e) => {
+            const rect = dog.getBoundingClientRect();
+            const dogCenterX = rect.left + rect.width / 2;
+            const dogCenterY = rect.top + rect.height / 2;
+
+            const angle = Math.atan2(e.clientY - dogCenterY, e.clientX - dogCenterX);
+            const distance = Math.min(3, Math.hypot(e.clientX - dogCenterX, e.clientY - dogCenterY) / 50);
+
+            const eyes = dog.querySelectorAll('.eye');
+            eyes.forEach(eye => {
+                const offsetX = Math.cos(angle) * distance;
+                const offsetY = Math.sin(angle) * distance;
+                eye.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            });
+        });
+    }
+
+    // Click to bark
+    dog.addEventListener('click', (e) => {
+        if (!isLongPress) {
+            const rect = dog.getBoundingClientRect();
+            spawnBark(rect.left + rect.width / 2, rect.top);
+            playSound('bark');
+            updateLoveMeter(state.loveLevel + 2);
+
+            if (navigator.vibrate) {
+                navigator.vibrate([30, 20, 30]);
+            }
+        }
+    });
+
+    // Long press
+    const startLongPress = () => {
+        isLongPress = false;
+        longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            showThought("I love you! 😘");
+            updateLoveMeter(state.loveLevel + 10);
+
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 50, 50, 50, 100]);
+            }
+        }, 800);
+    };
+
+    const cancelLongPress = () => {
+        clearTimeout(longPressTimer);
+    };
+
+    dog.addEventListener('mousedown', startLongPress);
+    dog.addEventListener('touchstart', startLongPress);
+    dog.addEventListener('mouseup', cancelLongPress);
+    dog.addEventListener('mouseleave', cancelLongPress);
+    dog.addEventListener('touchend', cancelLongPress);
+
+    function spawnBark(x, y) {
+        const barks = ['Woof! 🐕', 'Bark! 💕', 'Yap! 🎾', 'Arf! 🦴', 'Pick YES! 💖'];
+        const bark = document.createElement('span');
+        bark.className = 'bark-text';
+        bark.textContent = barks[Math.floor(Math.random() * barks.length)];
+        bark.style.left = x + 'px';
+        bark.style.top = y + 'px';
+
+        document.body.appendChild(bark);
+        setTimeout(() => bark.remove(), 800);
     }
 }
 
@@ -382,10 +897,10 @@ function initButtons() {
 
     // NO button
     elements.noBtn.addEventListener('mouseenter', handleNoHover);
-    elements.noBtn.addEventListener('click', handleNoHover);
+    elements.noBtn.addEventListener('click', handleNoClick);
     elements.noBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        handleNoHover(e);
+        handleNoClick(e);
     });
 }
 
@@ -393,15 +908,20 @@ function handleYesClick() {
     if (state.hasClickedYes) return;
     state.hasClickedYes = true;
 
-    // Haptic feedback on YES
+    playSound('success');
+
+    // Max love meter
+    updateLoveMeter(100);
+
+    // Haptic feedback
     if (navigator.vibrate) {
         navigator.vibrate([50, 100, 50, 100, 200]);
     }
 
     setDogMood('celebrating');
-    triggerConfetti();
+    triggerMassiveConfetti();
 
-    // Transition
+    // Transition to success
     if (typeof gsap !== 'undefined') {
         gsap.to(elements.questionSection, {
             opacity: 0,
@@ -414,6 +934,9 @@ function handleYesClick() {
                     { opacity: 0, scale: 0.9 },
                     { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }
                 );
+
+                // Create heart burst
+                createHeartBurst();
             }
         });
     } else {
@@ -434,30 +957,53 @@ function handleYesClick() {
                         { opacity: 0, y: 30 },
                         { opacity: 1, y: 0, duration: 0.6 }
                     );
+
+                    // Show surprise button
+                    if (elements.fabSurprise) {
+                        elements.fabSurprise.style.display = 'flex';
+                    }
                 }
             });
         } else {
             elements.successSection.style.display = 'none';
             elements.finalSection.style.display = 'block';
         }
-    }, 3000);
+    }, 4000);
 }
 
-function handleNoHover(e) {
-    e.preventDefault();
+function handleNoHover() {
+    if (state.noAttempts > 0) {
+        setDogMood('sad');
+    }
+}
+
+function handleNoClick(e) {
+    if (e) e.preventDefault();
 
     state.noAttempts++;
     state.lastInteraction = Date.now();
 
-    setDogMood('shocked');
+    // Increase love meter slightly (ironic)
+    updateLoveMeter(state.loveLevel + 2);
+
+    // Different reactions based on attempt count
+    if (state.noAttempts <= 3) {
+        setDogMood('shocked');
+    } else {
+        setDogMood('sad');
+    }
 
     // Update button text
     const msgIndex = (state.noAttempts - 1) % PERSONALIZATION.noMessages.length;
     elements.noBtn.querySelector('.btn-text').textContent = PERSONALIZATION.noMessages[msgIndex];
 
-    // SIZE ESCALATION: NO shrinks, YES grows
-    const noScale = Math.max(0.6, 1 - state.noAttempts * 0.08); // Min 60% size
-    const yesScale = Math.min(1.4, 1 + state.noAttempts * 0.08); // Max 140% size
+    // Panic animation
+    elements.noBtn.classList.add('shrinking');
+    setTimeout(() => elements.noBtn.classList.remove('shrinking'), 500);
+
+    // Scale changes - YES grows, NO shrinks and moves
+    const noScale = Math.max(0.3, 1 - state.noAttempts * 0.1);
+    const yesScale = Math.min(1.8, 1 + state.noAttempts * 0.12);
 
     if (typeof gsap !== 'undefined') {
         // Shrink NO button
@@ -473,31 +1019,69 @@ function handleNoHover(e) {
             duration: 0.4,
             ease: "back.out(1.7)"
         });
-    } else {
-        elements.noBtn.style.transform = `scale(${noScale})`;
-        elements.yesBtn.style.transform = `scale(${yesScale})`;
-    }
 
-    // Slight movement for NO button
-    const moveX = (Math.random() - 0.5) * 60;
-    const moveY = (Math.random() - 0.5) * 40;
+        // Move NO button around (running away!)
+        const maxX = window.innerWidth > 480 ? 100 : 60;
+        const maxY = window.innerWidth > 480 ? 60 : 40;
+        const moveX = (Math.random() - 0.5) * maxX;
+        const moveY = (Math.random() - 0.5) * maxY;
 
-    if (typeof gsap !== 'undefined') {
         gsap.to(elements.noBtnWrapper, {
             x: moveX,
             y: moveY,
-            rotation: (Math.random() - 0.5) * 15,
+            rotation: (Math.random() - 0.5) * 20,
             duration: 0.3,
             ease: "power2.out"
         });
     } else {
-        elements.noBtnWrapper.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${(Math.random() - 0.5) * 15}deg)`;
+        elements.noBtn.style.transform = `scale(${noScale})`;
+        elements.yesBtn.style.transform = `scale(${yesScale})`;
     }
 
     // Show escalation message after 3 attempts
     if (state.noAttempts === 3) {
         elements.escalationMsg.classList.add('visible');
     }
+
+    // NO button surrenders after 8 attempts
+    if (state.noAttempts >= 8) {
+        surrenderNoButton();
+    }
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
+}
+
+function surrenderNoButton() {
+    if (typeof gsap !== 'undefined') {
+        gsap.to(elements.noBtnWrapper, {
+            opacity: 0,
+            scale: 0,
+            rotation: 360,
+            duration: 0.8,
+            ease: "power2.in",
+            onComplete: () => {
+                elements.noBtnWrapper.style.display = 'none';
+                elements.escalationMsg.style.display = 'none';
+                elements.surrenderMsg.style.display = 'block';
+            }
+        });
+
+        // Make YES button even bigger
+        gsap.to(elements.yesBtn, {
+            scale: 2,
+            duration: 0.6,
+            ease: "elastic.out(1, 0.5)"
+        });
+    } else {
+        elements.noBtnWrapper.style.display = 'none';
+        elements.surrenderMsg.style.display = 'block';
+    }
+
+    setDogMood('happy');
+    showThought("Finally! 🎉");
 }
 
 /**
@@ -506,33 +1090,88 @@ function handleNoHover(e) {
  * ========================================
  */
 
-function triggerConfetti() {
-    if (typeof confetti !== 'undefined') {
-        const colors = ['#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB'];
+function triggerMassiveConfetti() {
+    if (typeof confetti === 'undefined') return;
 
+    const colors = ['#FF69B4', '#FF1493', '#FFB6C1', '#FFC0CB', '#FF85A2', '#FFD1DC'];
+
+    // Initial burst
+    confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: colors
+    });
+
+    // Side bursts
+    setTimeout(() => {
         confetti({
-            particleCount: 100,
-            spread: 80,
-            origin: { y: 0.6 },
+            particleCount: 80,
+            angle: 60,
+            spread: 60,
+            origin: { x: 0 },
             colors: colors
         });
+        confetti({
+            particleCount: 80,
+            angle: 120,
+            spread: 60,
+            origin: { x: 1 },
+            colors: colors
+        });
+    }, 200);
 
+    // Continuous celebration
+    let count = 0;
+    const interval = setInterval(() => {
+        confetti({
+            particleCount: 30,
+            angle: Math.random() * 360,
+            spread: 60,
+            origin: { x: Math.random(), y: Math.random() * 0.5 },
+            colors: colors
+        });
+        count++;
+        if (count > 10) clearInterval(interval);
+    }, 300);
+}
+
+function createHeartBurst() {
+    const container = document.getElementById('hearts-burst');
+    if (!container) return;
+
+    const hearts = ['💕', '💖', '💗', '💓', '💝', '❤️'];
+
+    for (let i = 0; i < 20; i++) {
         setTimeout(() => {
-            confetti({
-                particleCount: 50,
-                angle: 60,
-                spread: 50,
-                origin: { x: 0 },
-                colors: colors
-            });
-            confetti({
-                particleCount: 50,
-                angle: 120,
-                spread: 50,
-                origin: { x: 1 },
-                colors: colors
-            });
-        }, 200);
+            const heart = document.createElement('span');
+            heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            heart.style.cssText = `
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                font-size: ${Math.random() * 20 + 15}px;
+                animation: heartBurst 1.5s ease-out forwards;
+                --tx: ${(Math.random() - 0.5) * 300}px;
+                --ty: ${(Math.random() - 0.5) * 300}px;
+                --r: ${Math.random() * 360}deg;
+            `;
+            container.appendChild(heart);
+            setTimeout(() => heart.remove(), 1500);
+        }, i * 50);
+    }
+
+    // Add CSS animation if not exists
+    if (!document.getElementById('heart-burst-style')) {
+        const style = document.createElement('style');
+        style.id = 'heart-burst-style';
+        style.textContent = `
+            @keyframes heartBurst {
+                0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+                100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--r)) scale(1); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
 
@@ -551,10 +1190,9 @@ function initCountdown() {
         const diff = target - now;
 
         if (diff <= 0) {
-            elements.countdown.days.textContent = '00';
-            elements.countdown.hours.textContent = '00';
-            elements.countdown.minutes.textContent = '00';
-            elements.countdown.seconds.textContent = '00';
+            Object.values(elements.countdown).forEach(el => {
+                if (el) el.textContent = '00';
+            });
             return;
         }
 
@@ -563,10 +1201,10 @@ function initCountdown() {
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        elements.countdown.days.textContent = String(days).padStart(2, '0');
-        elements.countdown.hours.textContent = String(hours).padStart(2, '0');
-        elements.countdown.minutes.textContent = String(minutes).padStart(2, '0');
-        elements.countdown.seconds.textContent = String(seconds).padStart(2, '0');
+        if (elements.countdown.days) elements.countdown.days.textContent = String(days).padStart(2, '0');
+        if (elements.countdown.hours) elements.countdown.hours.textContent = String(hours).padStart(2, '0');
+        if (elements.countdown.minutes) elements.countdown.minutes.textContent = String(minutes).padStart(2, '0');
+        if (elements.countdown.seconds) elements.countdown.seconds.textContent = String(seconds).padStart(2, '0');
     }
 
     update();
@@ -575,264 +1213,25 @@ function initCountdown() {
 
 /**
  * ========================================
- * EASTER EGG
+ * LOVE QUOTES
  * ========================================
  */
 
-function initEasterEgg() {
-    // Track interaction
-    document.addEventListener('mousemove', () => {
-        state.lastInteraction = Date.now();
-    });
+function initLoveQuotes() {
+    if (!elements.loveQuote) return;
 
-    document.addEventListener('click', () => {
-        state.lastInteraction = Date.now();
-    });
+    // Show random quote
+    const quote = PERSONALIZATION.loveQuotes[Math.floor(Math.random() * PERSONALIZATION.loveQuotes.length)];
+    const quoteText = elements.loveQuote.querySelector('.quote-text');
+    const quoteAuthor = elements.loveQuote.querySelector('.quote-author');
 
-    // Check for inactivity
-    setInterval(() => {
-        const inactive = Date.now() - state.lastInteraction;
-        if (inactive > 10000 && !state.easterEggShown && !state.hasClickedYes) {
-            state.easterEggShown = true;
-            elements.easterEgg.classList.add('visible');
-
-            setTimeout(() => {
-                elements.easterEgg.classList.remove('visible');
-                state.easterEggShown = false;
-            }, 5000);
-        }
-    }, 1000);
+    if (quoteText) quoteText.textContent = `"${quote.text}"`;
+    if (quoteAuthor) quoteAuthor.textContent = `— ${quote.author}`;
 }
 
 /**
  * ========================================
- * CARD PARALLAX
- * ========================================
- */
-
-function initCardParallax() {
-    const card = document.getElementById('valentine-card');
-
-    document.addEventListener('mousemove', (e) => {
-        if (window.innerWidth < 768) return; // Disable on mobile
-
-        const x = (e.clientX / window.innerWidth - 0.5) * 10;
-        const y = (e.clientY / window.innerHeight - 0.5) * 10;
-
-        if (typeof gsap !== 'undefined') {
-            gsap.to(card, {
-                rotationY: x,
-                rotationX: -y,
-                duration: 0.5,
-                ease: "power2.out"
-            });
-        } else {
-            card.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
-        }
-    });
-}
-
-/**
- * ========================================
- * TOUCH HEARTS - Tap anywhere to spawn
- * ========================================
- */
-
-function initTouchHearts() {
-    if (!isTouchDevice) return;
-
-    const hearts = ['💕', '💖', '💗', '💓', '💝', '🌸', '✨'];
-
-    document.addEventListener('touchstart', (e) => {
-        // Don't spawn on buttons
-        if (e.target.closest('.btn')) return;
-
-        const touch = e.touches[0];
-        spawnTouchHeart(touch.clientX, touch.clientY);
-
-        // Haptic feedback
-        if (navigator.vibrate) {
-            navigator.vibrate(10);
-        }
-    });
-
-    // Double tap = burst
-    let lastTap = 0;
-    document.addEventListener('touchend', (e) => {
-        const now = Date.now();
-        if (now - lastTap < 300) {
-            // Double tap detected
-            const touch = e.changedTouches[0];
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    spawnTouchHeart(
-                        touch.clientX + (Math.random() - 0.5) * 100,
-                        touch.clientY + (Math.random() - 0.5) * 100
-                    );
-                }, i * 50);
-            }
-
-            if (navigator.vibrate) {
-                navigator.vibrate([20, 30, 20]);
-            }
-        }
-        lastTap = now;
-    });
-
-    function spawnTouchHeart(x, y) {
-        const heart = document.createElement('span');
-        heart.className = 'touch-heart';
-        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        heart.style.left = x + 'px';
-        heart.style.top = y + 'px';
-        heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
-
-        document.body.appendChild(heart);
-        setTimeout(() => heart.remove(), 800);
-    }
-}
-
-/**
- * ========================================
- * SHITZU INTERACTIONS
- * ========================================
- */
-
-function initShitzuInteractions() {
-    const dog = elements.shitzuDog;
-    let longPressTimer;
-    let isLongPress = false;
-
-    // Eye tracking
-    if (!isTouchDevice) {
-        document.addEventListener('mousemove', (e) => {
-            const rect = dog.getBoundingClientRect();
-            const dogCenterX = rect.left + rect.width / 2;
-            const dogCenterY = rect.top + rect.height / 2;
-
-            const angle = Math.atan2(e.clientY - dogCenterY, e.clientX - dogCenterX);
-            const distance = Math.min(3, Math.hypot(e.clientX - dogCenterX, e.clientY - dogCenterY) / 50);
-
-            const eyes = dog.querySelectorAll('.eye');
-            eyes.forEach(eye => {
-                const offsetX = Math.cos(angle) * distance;
-                const offsetY = Math.sin(angle) * distance;
-                eye.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-            });
-        });
-    }
-
-    // Click to bark
-    dog.addEventListener('click', (e) => {
-        if (!isLongPress) {
-            spawnBark(e.clientX || e.touches?.[0]?.clientX || rect.left + rect.width/2,
-                      e.clientY || e.touches?.[0]?.clientY || rect.top);
-
-            // Ear wiggle
-            dog.classList.add('wiggling');
-            setTimeout(() => dog.classList.remove('wiggling'), 500);
-
-            if (navigator.vibrate) {
-                navigator.vibrate([30, 20, 30]);
-            }
-        }
-    });
-
-    // Long press to lick
-    const startLongPress = () => {
-        isLongPress = false;
-
-        longPressTimer = setTimeout(() => {
-            isLongPress = true;
-            spawnLickAnimation();
-
-            if (navigator.vibrate) {
-                navigator.vibrate([50, 50, 50, 50, 100]);
-            }
-        }, 800);
-    };
-
-    const cancelLongPress = () => {
-        clearTimeout(longPressTimer);
-    };
-
-    dog.addEventListener('mousedown', startLongPress);
-    dog.addEventListener('touchstart', startLongPress);
-    dog.addEventListener('mouseup', cancelLongPress);
-    dog.addEventListener('mouseleave', cancelLongPress);
-    dog.addEventListener('touchend', cancelLongPress);
-
-    function spawnBark(x, y) {
-        const barks = ['Woof! 🐕', 'Bark! 💕', 'Yap! 🎾', 'Arf! 🦴'];
-        const bark = document.createElement('span');
-        bark.className = 'bark-text';
-        bark.textContent = barks[Math.floor(Math.random() * barks.length)];
-        bark.style.left = x + 'px';
-        bark.style.top = y + 'px';
-
-        document.body.appendChild(bark);
-        setTimeout(() => bark.remove(), 800);
-    }
-
-    function spawnLickAnimation() {
-        // Create tongue lick effect
-        const lick = document.createElement('div');
-        lick.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, #FF9999 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            animation: lickGrow 1s ease-out forwards;
-        `;
-        document.body.appendChild(lick);
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes lickGrow {
-                0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-                50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.8; }
-                100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-
-        setTimeout(() => {
-            lick.remove();
-            style.remove();
-        }, 1000);
-
-        // Show love message
-        elements.thoughtBubble.querySelector('p').textContent = "I love you! 😘";
-        elements.thoughtBubble.classList.add('visible');
-        setTimeout(() => elements.thoughtBubble.classList.remove('visible'), 2000);
-    }
-
-    // Sleep mode after inactivity
-    let sleepTimer;
-    const resetSleep = () => {
-        clearTimeout(sleepTimer);
-        dog.classList.remove('sleeping');
-
-        sleepTimer = setTimeout(() => {
-            if (!state.hasClickedYes) {
-                dog.classList.add('sleeping');
-            }
-        }, 15000);
-    };
-
-    document.addEventListener('mousemove', resetSleep);
-    document.addEventListener('touchstart', resetSleep);
-    resetSleep();
-}
-
-/**
- * ========================================
- * WHATSAPP INTEGRATION
+ * WHATSAPP
  * ========================================
  */
 
@@ -844,10 +1243,8 @@ function initWhatsApp() {
         let url;
 
         if (PERSONALIZATION.whatsappNumber) {
-            // Direct to your number
             url = `https://wa.me/${PERSONALIZATION.whatsappNumber}?text=${message}`;
         } else {
-            // Open WhatsApp with message ready to share
             url = `https://wa.me/?text=${message}`;
         }
 
@@ -861,124 +1258,99 @@ function initWhatsApp() {
 
 /**
  * ========================================
- * NOTIFICATION REMINDER
+ * EASTER EGG
  * ========================================
  */
 
-function initNotifications() {
-    if (!elements.notifyBtn) return;
-
-    elements.notifyBtn.addEventListener('click', async () => {
-        // Request permission
-        if ('Notification' in window) {
-            const permission = await Notification.requestPermission();
-
-            if (permission === 'granted') {
-                // Schedule notification for Valentine's Day morning
-                const valentineDate = new Date(PERSONALIZATION.valentineDate);
-                valentineDate.setHours(8, 0, 0, 0); // 8 AM
-
-                const now = new Date();
-                const timeUntil = valentineDate - now;
-
-                if (timeUntil > 0) {
-                    // Use setTimeout for demo (in production, use service worker)
-                    setTimeout(() => {
-                        new Notification("💕 Valentine's Day!", {
-                            body: "Today's the day! Get ready for your special date!",
-                            icon: "💕",
-                            badge: "💕"
-                        });
-                    }, Math.min(timeUntil, 5000)); // Cap at 5 seconds for demo
-
-                    elements.notifyBtn.innerHTML = "<span>✅ Reminder set!</span>";
-                    elements.notifyBtn.style.background = "#25D366";
-                }
-
-                if (navigator.vibrate) {
-                    navigator.vibrate([50, 100, 50]);
-                }
-            } else {
-                alert("Please allow notifications to get a reminder!");
-            }
-        } else {
-            alert("Your browser doesn't support notifications.");
-        }
+function initEasterEgg() {
+    document.addEventListener('mousemove', () => {
+        state.lastInteraction = Date.now();
     });
+
+    document.addEventListener('click', () => {
+        state.lastInteraction = Date.now();
+    });
+
+    setInterval(() => {
+        const inactive = Date.now() - state.lastInteraction;
+        if (inactive > 12000 && !state.easterEggShown && !state.hasClickedYes) {
+            state.easterEggShown = true;
+            elements.easterEgg.classList.add('visible');
+
+            setTimeout(() => {
+                elements.easterEgg.classList.remove('visible');
+                state.easterEggShown = false;
+            }, 5000);
+        }
+    }, 1000);
 }
 
 /**
  * ========================================
- * SHAKE TO RESET
+ * KONAMI CODE EASTER EGG
  * ========================================
  */
 
-function initShakeToReset() {
-    if (!isMobile) return;
+function initKonamiCode() {
+    document.addEventListener('keydown', (e) => {
+        if (KONAMI_CODE[state.konamiProgress] === e.key) {
+            state.konamiProgress++;
 
-    let lastX = 0, lastY = 0, lastZ = 0;
-    let shakeThreshold = 15;
-    let shakeTimeout;
-
-    if (window.DeviceMotionEvent) {
-        window.addEventListener('devicemotion', (e) => {
-            const acc = e.accelerationIncludingGravity;
-            if (!acc) return;
-
-            const deltaX = Math.abs(acc.x - lastX);
-            const deltaY = Math.abs(acc.y - lastY);
-            const deltaZ = Math.abs(acc.z - lastZ);
-
-            if ((deltaX > shakeThreshold || deltaY > shakeThreshold || deltaZ > shakeThreshold)) {
-                clearTimeout(shakeTimeout);
-
-                shakeTimeout = setTimeout(() => {
-                    // Reset NO button size
-                    state.noAttempts = 0;
-
-                    if (typeof gsap !== 'undefined') {
-                        gsap.to(elements.noBtn, { scale: 1, duration: 0.5, ease: "back.out(1.7)" });
-                        gsap.to(elements.yesBtn, { scale: 1, duration: 0.5, ease: "back.out(1.7)" });
-                        gsap.to(elements.noBtnWrapper, { x: 0, y: 0, rotation: 0, duration: 0.5 });
-                    } else {
-                        elements.noBtn.style.transform = 'scale(1)';
-                        elements.yesBtn.style.transform = 'scale(1)';
-                        elements.noBtnWrapper.style.transform = '';
-                    }
-
-                    elements.noBtn.querySelector('.btn-text').textContent = 'No';
-                    elements.escalationMsg.classList.remove('visible');
-
-                    if (navigator.vibrate) {
-                        navigator.vibrate([50, 30, 50, 30, 50]);
-                    }
-
-                    // Show reset message
-                    const msg = document.createElement('div');
-                    msg.textContent = 'Reset! 📳';
-                    msg.style.cssText = `
-                        position: fixed;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: rgba(255, 105, 180, 0.9);
-                        color: white;
-                        padding: 10px 20px;
-                        border-radius: 20px;
-                        font-weight: 600;
-                        z-index: 10000;
-                        animation: fadeInOut 1s ease forwards;
-                    `;
-                    document.body.appendChild(msg);
-                    setTimeout(() => msg.remove(), 1000);
-                }, 100);
+            if (state.konamiProgress === KONAMI_CODE.length) {
+                triggerKonamiReward();
+                state.konamiProgress = 0;
             }
+        } else {
+            state.konamiProgress = 0;
+        }
+    });
 
-            lastX = acc.x;
-            lastY = acc.y;
-            lastZ = acc.z;
+    // Close konami modal
+    if (elements.closeKonami) {
+        elements.closeKonami.addEventListener('click', () => {
+            elements.konamiReward.style.display = 'none';
         });
     }
+}
+
+function triggerKonamiReward() {
+    if (!elements.konamiReward) return;
+
+    elements.konamiReward.style.display = 'flex';
+    triggerMassiveConfetti();
+
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100, 50, 100]);
+    }
+
+    updateLoveMeter(100);
+}
+
+/**
+ * ========================================
+ * CARD PARALLAX
+ * ========================================
+ */
+
+function initCardParallax() {
+    const card = document.getElementById('valentine-card');
+    if (!card || isMobile) return;
+
+    document.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 8;
+        const y = (e.clientY / window.innerHeight - 0.5) * 8;
+
+        if (typeof gsap !== 'undefined') {
+            gsap.to(card, {
+                rotationY: x,
+                rotationX: -y,
+                duration: 0.4,
+                ease: "power2.out"
+            });
+        } else {
+            card.style.transform = `perspective(1000px) rotateY(${x}deg) rotateX(${-y}deg)`;
+        }
+    });
 }
 
 /**
@@ -988,25 +1360,35 @@ function initShakeToReset() {
  */
 
 function optimizeForMobile() {
-    // Reduce particle count
-    const canvas = elements.particleCanvas;
-    if (canvas) {
-        canvas.style.opacity = '0.5';
+    // Reduce particle opacity
+    if (elements.particleCanvas) {
+        elements.particleCanvas.style.opacity = '0.4';
     }
-
-    // Slower petal generation
-    // (Already handled in initPetals with isTouchDevice check)
 
     // Prevent double-tap zoom
     document.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        e.target.click();
+        const now = Date.now();
+        if (now - lastTouchEnd < 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
     }, { passive: false });
 
     // Add double tap hint
     const hint = document.createElement('div');
     hint.className = 'double-tap-hint';
-    hint.textContent = '👆 Double tap anywhere for hearts!';
+    hint.textContent = 'Double tap anywhere for hearts!';
     document.body.appendChild(hint);
-    setTimeout(() => hint.remove(), 8000);
+    setTimeout(() => hint.remove(), 9000);
 }
+
+let lastTouchEnd = 0;
+
+/**
+ * ========================================
+ * INITIALIZATION COMPLETE
+ * ========================================
+ */
+
+console.log('💕 Ganga\'s Valentine - Made with love 💕');
+console.log('Hint: Try the Konami Code! ↑↑↓↓←→←→BA');
