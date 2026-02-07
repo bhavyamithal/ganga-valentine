@@ -13,12 +13,9 @@ const PERSONALIZATION = {
     // Reasons why you love her - these will cycle through
     loveReasons: [
         "Your smile lights up my entire world",
-        "You make every moment feel magical",
         "Your laugh is my favorite sound",
         "You understand me like no one else",
         "Every day with you is an adventure",
-        "You make me want to be a better person",
-        "Your kindness inspires me every day",
         "I love how we can talk for hours",
         "You're my best friend and soulmate"
     ],
@@ -40,11 +37,11 @@ const PERSONALIZATION = {
 
     // Love quotes for the final section
     loveQuotes: [
-        { text: "In all the world, there is no heart for me like yours.", author: "Maya Angelou" },
-        { text: "I have found the one whom my soul loves.", author: "Song of Solomon" },
-        { text: "You are my today and all of my tomorrows.", author: "Leo Christopher" },
-        { text: "I love you not only for what you are, but for what I am when I am with you.", author: "Roy Croft" },
-        { text: "Whatever our souls are made of, his and mine are the same.", author: "Emily Brontë" }
+        { text: "In all the world, there is no heart for me like yours.", author: "Bhavya Mithal" },
+        { text: "I have found the one whom my soul loves.", author: "Bhavya Mithal" },
+        { text: "You are my today and all of my tomorrows.", author: "Bhavya Mithal" },
+        { text: "I love you not only for what you are, but for what I am when I am with you.", author: "Bhavya Mithal" },
+        { text: "Whatever our souls are made of, his and mine are the same.", author: "Bhavya Mithal" }
     ],
 
     valentineDate: new Date(new Date().getFullYear(), 1, 14), // February 14th
